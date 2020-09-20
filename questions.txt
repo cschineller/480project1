@@ -1,0 +1,77 @@
+COSC 480B Assignment #1: Secure Messaging
+
+
+NAMES: Callie Schineller, Morgan Farrah
+
+______________________________________________________________________________________
+
+Question #1
+Describe the protocol you agreed upon with your classmates in English (no code) in
+enough detail that someone else provided with InsecureMessaging.py could implement it. 
+
+We are utilizing two shared keys between the client and the server. 
+The first key is to encrypt the messages from the client to the server 
+and for the server to decrypt messages received from the client. 
+The second key is used to encrypt messages sent from the server to 
+the client and for the client to decrypt messages sent from the server. 
+We'll be using the AES_EAX cipher from Crypto, which generates a nonce 
+and tag for each message sent to ensure authenticity because Diffie-Hellman 
+is susceptible to a man-in-the-middle attack and thus can't ensure authenticity. 
+We'll be sending the message in the format of 
+(nonce + splitter + ciphertext + splitter + tag). 
+
+______________________________________________________________________________________
+
+Question #2
+Describe two pros, two cons, OR one pro and one con of the protocol you agreed upon 
+with your classmates.
+
+Pro 1: This protocol provides confidentiality because we are encrypting the 
+messages using shared secret keys. 
+
+Pro 2: This protocol helps us ensure authenticity by using the built-in encryption 
+functionality from AES_EAX that generated a nonce and a tag for each message sent. 
+
+______________________________________________________________________________________
+
+Question #3
+Thinking like a defender, what/who do you have to trust in order to be confident
+that messages sent using your SecureMessaging.py cannot be obtained by an adversary and why? 
+Describe at least THREE entities you must trust.  
+
+1. the client
+2. the server
+3. the AES_EAX cipher from the Crypto library
+
+______________________________________________________________________________________
+
+Question #4
+Thinking like an attacker, how might an adversary still compromise the confidentiality or 
+integrity of a message sent to a classmate using your SecureMessage.py? 
+Describe at least TWO potential attacks. 
+
+1. man-in-the-middle
+2. side channel
+
+______________________________________________________________________________________
+
+Question #5 (ungraded)
+How did you divide the work between partners? (Put N/A if worked alone)
+
+We worked together via Zoom and used Liveshare (when we were able to get it working)
+
+______________________________________________________________________________________
+
+Question #6 (optional, ungraded)
+Did you use code snippets from anywhere online that you need to cite?
+
+Yes, in key_exchange, we used a snippet from the documentation here: https://github.com/amiralis/pyDH. 
+
+______________________________________________________________________________________
+
+Question #7 (optional, ungraded) 
+Do you have any suggestions for improving this assignment in the future?
+
+We'd benefit from having a pdf of instructions instead of just having it all
+in the readme. Also it's helpful to have a repository over Github instead of 
+having to download each individual file ourselves.
