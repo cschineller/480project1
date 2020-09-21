@@ -30,7 +30,7 @@ Pro 1: This protocol provides confidentiality because we are encrypting the
 messages using shared secret keys. 
 
 Pro 2: This protocol helps us ensure authenticity by using the built-in encryption 
-functionality from AES_EAX that generated a nonce and a tag for each message sent. 
+functionality from AES_EAX that generates a nonce and a tag for each message sent. 
 
 ______________________________________________________________________________________
 
@@ -39,9 +39,10 @@ Thinking like a defender, what/who do you have to trust in order to be confident
 that messages sent using your SecureMessaging.py cannot be obtained by an adversary and why? 
 Describe at least THREE entities you must trust.  
 
-1. the client
-2. the server
-3. the AES_EAX cipher from the Crypto library
+1. the client (because they're sending and receiving)
+2. the server (because they're sending and receiving)
+3. the AES_EAX cipher from the Crypto library (because we're using this built-in 
+    library for our encryption)
 
 ______________________________________________________________________________________
 
@@ -50,8 +51,8 @@ Thinking like an attacker, how might an adversary still compromise the confident
 integrity of a message sent to a classmate using your SecureMessage.py? 
 Describe at least TWO potential attacks. 
 
-1. man-in-the-middle
-2. side channel
+1. man-in-the-middle (an attacker intercepts the message and alters it)
+2. side channel (an attacker convinces receiver to give shared key)
 
 ______________________________________________________________________________________
 
@@ -75,4 +76,7 @@ Do you have any suggestions for improving this assignment in the future?
 
 We'd benefit from having a pdf of instructions instead of just having it all
 in the readme. Also it's helpful to have a repository over Github instead of 
-having to download each individual file ourselves.
+having to download each individual file ourselves. We'd also in the future really
+love some coding examples before getting started - it took us a really long time
+to figure out what we were even doing. (We understood it conceptually based on the 
+class slides but actually coding it was really difficult)

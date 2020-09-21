@@ -33,7 +33,6 @@ class SecureMessage:
         self.S_PUBKEY = 0
         self.C_SHAREDKEY = 0
         self.S_SHAREDKEY = 0 
-        self.SPLITTER = "splt"
 
         # create IPv4 TCP socket
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -109,17 +108,15 @@ class SecureMessage:
             ciphertxt = AES.new(bytes(self.C_SHAREDKEY, encoding="ISO-8859-1")[:16], AES.MODE_EAX)
             
         nonce = ciphertxt.nonce
-        self.SPLITTER = "splt".encode("ISO-8859-1")
-        #print("SPLITTER TYPE IS:", type(self.SPLITTER))
+        splitter = "splt".encode("ISO-8859-1")
         ciphertxt, tag = ciphertxt.encrypt_and_digest(user_input)
 
-        return nonce+self.SPLITTER+ciphertxt+self.SPLITTER+tag
+        return nonce+splitter+ciphertxt+splitter+tag
 
     def process_received_message(self, recv_msg):
         #split the message into its parts using the splitter
-        #recv_msg = recv_msg.encode("ISO-8859-1")
-        array = recv_msg.split(str(self.SPLITTER))
-        print("ARRAY LENGTH:", len(array))
+        splitter = "splt".encode("ISO-8859-1")
+        array = recv_msg.split(splitter.decode("ISO-8859-1"))
         nonce = bytes(array[0], encoding="ISO-8859-1")
         ciphertxt = array[1]
         tag = array[2]
@@ -133,14 +130,12 @@ class SecureMessage:
         #decrypt the ciphertxt using the cipher
         plaintxt = cipher.decrypt(bytes(ciphertxt, encoding="ISO-8859-1"))
 
-        #print("PLAINTXT IS OF TYPE:", type(plaintxt))
-
         #check for integrity/authenticity
         try:
             cipher.verify(bytes(tag, encoding="ISO-8859-1"))
 
         except ValueError:
-            print("Key incorrect or message corrupted")
+            raise ValueError("MessageModificationDetected")
             os._exit(0)
 
         return plaintxt.decode("ISO-8859-1")
