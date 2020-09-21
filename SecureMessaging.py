@@ -17,7 +17,6 @@ import Crypto
 import pyDH
 
 from Crypto.Cipher import AES
-import codecs
 
 
 QUEUE_LENGTH = 1
@@ -80,54 +79,69 @@ class SecureMessage:
                 os._exit(0)
 
     def key_exchange(self):
-        """TODO: Diffie-Hellman key exchange"""
 
-        # generate c and then send to s using the self.s.send thing and encode
-        # s receives it as pubkey and decodes it back and then generates their shared key using that
+        c = pyDH.DiffieHellman() #client
+        s = pyDH.DiffieHellman() #server
 
-        c = pyDH.DiffieHellman()
-        s = pyDH.DiffieHellman()
-        c_pubkey, C_PUBKEY = c.gen_public_key()
-        self.s.send(c_pubkey.encode('ISO-8859-1'))
-        s_pubkey, S_PUBKEY = self.s.recv(SEND_BUFFER_SIZE.decode('ISO-8859-1'))
-        c_sharedkey, C_SHAREDKEY = c.gen_shared_key(s_pubkey)
-        s_sharedkey, S_SHAREDKEY = s.gen_shared_key(c_pubkey) 
+        C_PUBKEY = c.gen_public_key() #global variable
+        S_PUBKEY = s.gen_public_key() #global variable
+
+        #client sends their public key to server
+        self.s.send((C_PUBKEY.to_bytes(SEND_BUFFER_SIZE, sys.byteorder)))
+        c_pubkey = self.s.recv(SEND_BUFFER_SIZE)
+
+        #server sends their public key to client
+        self.s.send((C_PUBKEY.to_bytes(SEND_BUFFER_SIZE, sys.byteorder)))
+        s_pubkey = self.s.recv(SEND_BUFFER_SIZE)
+
+        #generate shared keys using what they received from each other
+        C_SHAREDKEY = c.gen_shared_key(s_pubkey)
+        S_SHAREDKEY = s.gen_shared_key(c_pubkey) 
         
 
     def process_user_input(self, user_input):
-        #use key of socket to encrypt the plain text
-        #use the global variable
-        """TODO: Add authentication and encryption"""
         
+        #check if we're dealing with the server or the client to know which key to use
         if SERVER: 
-            ciphertxt = AES.new( S_PUBKEY, AES.MODE_EAX)
-            
+            ciphertxt = AES.new(S_PUBKEY[:32], AES.MODE_EAX) 
         else:    
-            ciphertxt = AES.new(C_PUBKEY, AES.MODE_EAX)
-
+            ciphertxt = AES.new(C_PUBKEY[:32], AES.MODE_EAX)
+            
         nonce = Crypto.nonce
         splitter = "splt".encode("ISO-8859-1")
-        
         ciphertxt, tag = ciphertxt.encrypt_and_digest(user_input)
-        
-        #generate ciphertext with the aes thing and you use the nonce and create a splitter according to what chase said
-        #and you're returning the nonce+splitter....
-        #
 
-
-        
-        return nonce+splitter+
+        return nonce+splitter+ciphertxt+splitter+tag
 
     def process_received_message(self, recv_msg):
-        """TODO: Check message integrity and decrypt"""
-        #encode it again then array 
 
-        return recv_msg
+        #split the message into its parts using the splitter
+        array = recv_msg.split("splt".decode("ISO-8859-1"))
+        nonce = array[0]
+        ciphertxt = array[1]
+        tag = array[2]
+
+        if SERVER:
+            cipher = AES.new(S_PUBKEY[:32], AES.MODE_EAX, nonce=nonce)
+        else:
+            cipher = AES.new(C_PUBKEY[:32], AES.MODE_EAX, nonce=nonce)
+
+        #decrypt the ciphertxt using the cipher
+        plaintxt = cipher.decrypt(ciphertxt)
+
+        #check for integrity/authenticity
+        try:
+            cipher.verify(tag)
+
+        except ValueError:
+            print("Key incorrect or message corrupted")
+            os._exit(0)
+
+        return plaintxt
 
 
 def main():
     """Parse command-line arguments and start client/server"""
-    SERVER = True
     # too few arguments
     if len(sys.argv) < 2:
         sys.exit(
@@ -137,6 +151,7 @@ def main():
     elif len(sys.argv) == 2:
         server_ip = None
         server_port = int(sys.argv[1])
+        SERVER = True
 
     # arguments for client
     else:
